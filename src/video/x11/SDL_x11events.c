@@ -982,7 +982,7 @@ X11_DispatchEvent(_THIS)
                                         &xevent.xconfigure.x, &xevent.xconfigure.y,
                                         &ChildReturn);
             }
-                
+
             if (xevent.xconfigure.x != data->last_xconfigure.x ||
                 xevent.xconfigure.y != data->last_xconfigure.y) {
                 SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_MOVED,
@@ -1010,7 +1010,7 @@ X11_DispatchEvent(_THIS)
             static int xdnd_version=0;
 
             if (xevent.xclient.message_type == videodata->XdndEnter) {
-
+                SDL_SendDragEnter(data->window); // this is probably the wrong place to do this, but it works for now
                 SDL_bool use_list = xevent.xclient.data.l[1] & 1;
                 data->xdnd_source = xevent.xclient.data.l[0];
                 xdnd_version = (xevent.xclient.data.l[1] >> 24);
@@ -1031,6 +1031,9 @@ X11_DispatchEvent(_THIS)
                     /* pick from list of three */
                     data->xdnd_req = X11_PickTargetFromAtoms(display, xevent.xclient.data.l[2], xevent.xclient.data.l[3], xevent.xclient.data.l[4]);
                 }
+            }
+            else if (xevent.xclient.message_type == videodata->XdndLeave) {
+                SDL_SendDragExit(data->window); // this is probably the wrong place to do this, but it works for now
             }
             else if (xevent.xclient.message_type == videodata->XdndPosition) {
 
