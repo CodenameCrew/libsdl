@@ -35,7 +35,7 @@
 
 
 int
-SDL_IOReady(int fd, SDL_bool forWrite, int timeoutMS)
+SDL_IOReady(int fd, SDL_bool forWrite, Sint64 timeoutNS)
 {
     int result;
 
@@ -44,12 +44,21 @@ SDL_IOReady(int fd, SDL_bool forWrite, int timeoutMS)
     {
 #ifdef HAVE_POLL
         struct pollfd info;
+        int timeoutMS;
 
         info.fd = fd;
         if (forWrite) {
             info.events = POLLOUT;
         } else {
             info.events = POLLIN | POLLPRI;
+        }
+        /* FIXME: Add support for ppoll() for nanosecond precision */
+        if (timeoutNS > 0) {
+            timeoutMS = (int)SDL_NS_TO_MS(timeoutNS);
+        } else if (timeoutNS == 0) {
+            timeoutMS = 0;
+        } else {
+            timeoutMS = -1;
         }
         result = poll(&info, 1, timeoutMS);
 #else
@@ -70,9 +79,9 @@ SDL_IOReady(int fd, SDL_bool forWrite, int timeoutMS)
             rfdp = &rfdset;
         }
 
-        if (timeoutMS >= 0) {
-            tv.tv_sec = timeoutMS / 1000;
-            tv.tv_usec = (timeoutMS % 1000) * 1000;
+        if (timeoutNS >= 0) {
+            tv.tv_sec = (timeoutNS / SDL_NS_PER_SECOND);
+            tv.tv_usec = SDL_NS_TO_US(timeoutNS % SDL_NS_PER_SECOND);
             tvp = &tv;
         }
 

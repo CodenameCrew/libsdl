@@ -46,7 +46,7 @@ extern "C" {
 /**
  *  This is the timeout value which corresponds to never time out.
  */
-#define SDL_MUTEX_MAXWAIT   (~(Uint32)0)
+#define SDL_MUTEX_MAXWAIT -1
 
 
 /**
@@ -140,7 +140,9 @@ extern DECLSPEC int SDLCALL SDL_SemTryWait(SDL_sem * sem);
  *  \warning On some platforms this function is implemented by looping with a
  *           delay of 1 ms, and so should be avoided if possible.
  */
-extern DECLSPEC int SDLCALL SDL_SemWaitTimeout(SDL_sem * sem, Uint32 ms);
+extern DECLSPEC int SDLCALL SDL_SemWaitTimeout(SDL_sem *sem, Sint32 timeoutMS);
+
+extern DECLSPEC int SDLCALL SDL_SemWaitTimeoutNS(SDL_sem *sem, Sint64 timeoutNS);
 
 /**
  *  Atomically increases the semaphore's count (not blocking).
@@ -234,8 +236,11 @@ extern DECLSPEC int SDLCALL SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex);
  *  \warning On some platforms this function is implemented by looping with a
  *           delay of 1 ms, and so should be avoided if possible.
  */
-extern DECLSPEC int SDLCALL SDL_CondWaitTimeout(SDL_cond * cond,
-                                                SDL_mutex * mutex, Uint32 ms);
+extern DECLSPEC int SDLCALL SDL_CondWaitTimeout(SDL_cond *cond,
+                                                SDL_mutex *mutex, Sint32 timeoutMS);
+
+extern DECLSPEC int SDLCALL SDL_CondWaitTimeoutNS(SDL_cond *cond,
+                                                  SDL_mutex *mutex, Sint64 timeoutNS);
 
 /* @} *//* Condition variable functions */
 

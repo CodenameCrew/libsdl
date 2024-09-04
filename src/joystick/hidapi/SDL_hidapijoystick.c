@@ -292,9 +292,9 @@ static void
 HIDAPI_UpdateDiscovery()
 {
     if (!SDL_HIDAPI_discovery.m_bCanGetNotifications) {
-        const Uint32 SDL_HIDAPI_DETECT_INTERVAL_MS = 3000;  /* Update every 3 seconds */
-        Uint32 now = SDL_GetTicks();
-        if (!SDL_HIDAPI_discovery.m_unLastDetect || SDL_TICKS_PASSED(now, SDL_HIDAPI_discovery.m_unLastDetect + SDL_HIDAPI_DETECT_INTERVAL_MS)) {
+        const Uint64 SDL_HIDAPI_DETECT_INTERVAL_MS = 3000;  /* Update every 3 seconds */
+        Uint64 now = SDL_GetTicks();
+        if (!SDL_HIDAPI_discovery.m_unLastDetect || (now >= SDL_HIDAPI_discovery.m_unLastDetect + SDL_HIDAPI_DETECT_INTERVAL_MS)) {
             SDL_HIDAPI_discovery.m_bHaveDevicesChanged = SDL_TRUE;
             SDL_HIDAPI_discovery.m_unLastDetect = now;
         }

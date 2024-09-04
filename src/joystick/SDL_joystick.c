@@ -759,7 +759,7 @@ SDL_JoystickSetPlayerIndex(SDL_Joystick * joystick, int player_index)
 }
 
 int
-SDL_JoystickRumble(SDL_Joystick * joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble, Uint32 duration_ms)
+SDL_JoystickRumble(SDL_Joystick * joystick, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble, Uint64 duration_ms)
 {
     int result;
 
@@ -1254,7 +1254,7 @@ SDL_JoystickUpdate(void)
             SDL_LockJoysticks();
             /* Double check now that the lock is held */
             if (joystick->rumble_expiration &&
-                SDL_TICKS_PASSED(SDL_GetTicks(), joystick->rumble_expiration)) {
+                SDL_GetTicks() >= joystick->rumble_expiration) {
                 SDL_JoystickRumble(joystick, 0, 0, 0);
             }
             SDL_UnlockJoysticks();

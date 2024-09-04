@@ -117,7 +117,7 @@ typedef struct {
     SDL_bool bluetooth;
     SDL_XboxOneWirelessProtocol wireless_protocol;
     SDL_bool initialized;
-    Uint32 start_time;
+    Uint64 start_time;
     Uint8 sequence;
     Uint8 last_state[USB_PACKET_LENGTH];
     SDL_bool has_paddles;
@@ -227,11 +227,11 @@ SendControllerInit(SDL_HIDAPI_Device *device, SDL_DriverXboxOne_Context *ctx)
         }
 
         if (packet->response[0]) {
-            const Uint32 RESPONSE_TIMEOUT_MS = 50;
-            Uint32 start = SDL_GetTicks();
+            const Uint64 RESPONSE_TIMEOUT_MS = 50;
+            Uint64 start = SDL_GetTicks();
             SDL_bool got_response = SDL_FALSE;
 
-            while (!got_response && !SDL_TICKS_PASSED(SDL_GetTicks(), start + RESPONSE_TIMEOUT_MS)) {
+            while (!got_response && SDL_GetTicks() < start + RESPONSE_TIMEOUT_MS) {
                 Uint8 data[USB_PACKET_LENGTH];
                 int size;
 
@@ -603,7 +603,7 @@ HIDAPI_DriverXboxOne_UpdateDevice(SDL_HIDAPI_Device *device)
 
     if (!ctx->initialized &&
         !ControllerSendsWaitingForInit(device->vendor_id, device->product_id)) {
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), ctx->start_time + CONTROLLER_INIT_DELAY_MS)) {
+        if (SDL_GetTicks() >= ctx->start_time + CONTROLLER_INIT_DELAY_MS) {
             if (!SendControllerInit(device, ctx)) {
                 HIDAPI_JoystickDisconnected(device, joystick->instance_id);
                 return SDL_FALSE;

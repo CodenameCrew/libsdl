@@ -27,7 +27,7 @@
 #include "SDL_stdinc.h"
 
 
-extern int SDL_IOReady(int fd, SDL_bool forWrite, int timeoutMS);
+extern int SDL_IOReady(int fd, SDL_bool forWrite, Sint64 timeoutNS);
 
 #endif /* SDL_poll_h_ */
 

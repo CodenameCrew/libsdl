@@ -151,7 +151,7 @@ SDL_RunXInputHaptic(void *arg)
         SDL_LockMutex(hwdata->mutex);
         /* If we're currently running and need to stop... */
         if (hwdata->stopTicks) {
-            if ((hwdata->stopTicks != SDL_HAPTIC_INFINITY) && SDL_TICKS_PASSED(SDL_GetTicks(), hwdata->stopTicks)) {
+            if ((hwdata->stopTicks != SDL_HAPTIC_INFINITY) && SDL_GetTicks() >= hwdata->stopTicks) {
                 XINPUT_VIBRATION vibration = { 0, 0 };
                 hwdata->stopTicks = 0;
                 XINPUTSETSTATE(hwdata->userid, &vibration);
@@ -301,9 +301,6 @@ SDL_XINPUT_HapticRunEffect(SDL_Haptic * haptic, struct haptic_effect *effect, Ui
         /* do nothing. Effect runs for zero milliseconds. */
     } else {
         haptic->hwdata->stopTicks = SDL_GetTicks() + (effect->effect.leftright.length * iterations);
-        if ((haptic->hwdata->stopTicks == SDL_HAPTIC_INFINITY) || (haptic->hwdata->stopTicks == 0)) {
-            haptic->hwdata->stopTicks = 1;  /* fix edge cases. */
-        }
     }
     SDL_UnlockMutex(haptic->hwdata->mutex);
     return (XINPUTSETSTATE(haptic->hwdata->userid, vib) == ERROR_SUCCESS) ? 0 : -1;

@@ -786,7 +786,6 @@ ALSA_HotplugThread(void *arg)
     ALSA_Device *devices = NULL;
     ALSA_Device *next;
     ALSA_Device *dev;
-    Uint32 ticks;
 
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_LOW);
 
@@ -917,8 +916,8 @@ ALSA_HotplugThread(void *arg)
         }
 
         /* Block awhile before checking again, unless we're told to stop. */
-        ticks = SDL_GetTicks() + 5000;
-        while (!SDL_AtomicGet(&ALSA_hotplug_shutdown) && !SDL_TICKS_PASSED(SDL_GetTicks(), ticks)) {
+        const Uint64 ticks = SDL_GetTicks() + 5000;
+        while (!SDL_AtomicGet(&ALSA_hotplug_shutdown) && SDL_GetTicks() < ticks) {
             SDL_Delay(100);
         }
     }

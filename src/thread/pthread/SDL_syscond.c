@@ -95,8 +95,7 @@ SDL_CondBroadcast(SDL_cond * cond)
     return retval;
 }
 
-int
-SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
+int SDL_CondWaitTimeoutNS(SDL_cond *cond, SDL_mutex *mutex, Sint64 timeoutNS)
 {
     int retval;
 #ifndef HAVE_CLOCK_GETTIME
@@ -108,18 +107,25 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
         return SDL_SetError("Passed a NULL condition variable");
     }
 
+    if (timeoutNS < 0) {
+        if (pthread_cond_wait(&cond->cond, &mutex->id) != 0) {
+            return SDL_SetError("pthread_cond_wait() failed");
+        }
+        return 0;
+    }
+
 #ifdef HAVE_CLOCK_GETTIME
     clock_gettime(CLOCK_REALTIME, &abstime);
 
-    abstime.tv_nsec += (ms % 1000) * 1000000;
-    abstime.tv_sec += ms / 1000;
+    abstime.tv_sec += (timeoutNS / SDL_NS_PER_SECOND);
+    abstime.tv_nsec += (timeoutNS % SDL_NS_PER_SECOND);
 #else
     gettimeofday(&delta, NULL);
 
-    abstime.tv_sec = delta.tv_sec + (ms / 1000);
-    abstime.tv_nsec = (delta.tv_usec + (ms % 1000) * 1000) * 1000;
+    abstime.tv_sec = delta.tv_sec + (timeoutNS / SDL_NS_PER_SECOND);
+    abstime.tv_nsec = SDL_US_TO_NS(delta.tv_usec) + (timeoutNS % SDL_NS_PER_SECOND);
 #endif
-    if (abstime.tv_nsec > 1000000000) {
+    while (abstime.tv_nsec > 1000000000) {
         abstime.tv_sec += 1;
         abstime.tv_nsec -= 1000000000;
     }
@@ -139,20 +145,6 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
         retval = SDL_SetError("pthread_cond_timedwait() failed");
     }
     return retval;
-}
-
-/* Wait on the condition variable, unlocking the provided mutex.
-   The mutex must be locked before entering this function!
- */
-int
-SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex)
-{
-    if (!cond) {
-        return SDL_SetError("Passed a NULL condition variable");
-    } else if (pthread_cond_wait(&cond->cond, &mutex->id) != 0) {
-        return SDL_SetError("pthread_cond_wait() failed");
-    }
-    return 0;
 }
 
 /* vi: set ts=4 sw=4 expandtab: */

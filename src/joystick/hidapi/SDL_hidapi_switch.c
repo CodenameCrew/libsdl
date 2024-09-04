@@ -203,7 +203,7 @@ typedef struct {
     SwitchCommonOutputPacket_t m_RumblePacket;
     Uint8 m_rgucReadBuffer[k_unSwitchMaxOutputPacketLength];
     SDL_bool m_bRumbleActive;
-    Uint32 m_unRumbleRefresh;
+    Uint64 m_unRumbleRefresh;
 
     SwitchInputOnlyControllerStatePacket_t m_lastInputOnlyState;
     SwitchSimpleStatePacket_t m_lastSimpleState;
@@ -287,8 +287,8 @@ static int WriteOutput(SDL_DriverSwitch_Context *ctx, const Uint8 *data, int siz
 static SwitchSubcommandInputPacket_t *ReadSubcommandReply(SDL_DriverSwitch_Context *ctx, ESwitchSubcommandIDs expectedID)
 {
     /* Average response time for messages is ~30ms */
-    Uint32 TimeoutMs = 100;
-    Uint32 startTicks = SDL_GetTicks();
+    Uint64 TimeoutMs = 100;
+    Uint64 startTicks = SDL_GetTicks();
 
     int nRead = 0;
     while ((nRead = ReadInput(ctx)) != -1) {
@@ -303,7 +303,7 @@ static SwitchSubcommandInputPacket_t *ReadSubcommandReply(SDL_DriverSwitch_Conte
             SDL_Delay(1);
         }
 
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), startTicks + TimeoutMs)) {
+        if (SDL_GetTicks() >= startTicks + TimeoutMs) {
             break;
         }
     }
@@ -313,8 +313,8 @@ static SwitchSubcommandInputPacket_t *ReadSubcommandReply(SDL_DriverSwitch_Conte
 static SDL_bool ReadProprietaryReply(SDL_DriverSwitch_Context *ctx, ESwitchProprietaryCommandIDs expectedID)
 {
     /* Average response time for messages is ~30ms */
-    Uint32 TimeoutMs = 100;
-    Uint32 startTicks = SDL_GetTicks();
+    Uint64 TimeoutMs = 100;
+    Uint64 startTicks = SDL_GetTicks();
 
     int nRead = 0;
     while ((nRead = ReadInput(ctx)) != -1) {
@@ -326,7 +326,7 @@ static SDL_bool ReadProprietaryReply(SDL_DriverSwitch_Context *ctx, ESwitchPropr
             SDL_Delay(1);
         }
 
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), startTicks + TimeoutMs)) {
+        if (SDL_GetTicks() >= startTicks + TimeoutMs) {
             break;
         }
     }
@@ -1115,7 +1115,7 @@ HIDAPI_DriverSwitch_UpdateDevice(SDL_HIDAPI_Device *device)
     }
 
     if (ctx->m_bRumbleActive &&
-        SDL_TICKS_PASSED(SDL_GetTicks(), ctx->m_unRumbleRefresh)) {
+        SDL_GetTicks() >= ctx->m_unRumbleRefresh) {
         WriteRumble(ctx);
     }
 

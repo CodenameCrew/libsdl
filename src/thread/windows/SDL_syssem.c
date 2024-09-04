@@ -76,7 +76,7 @@ SDL_DestroySemaphore(SDL_sem * sem)
 }
 
 int
-SDL_SemWaitTimeout(SDL_sem * sem, Uint32 timeout)
+SDL_SemWaitTimeoutNS(SDL_sem * sem, Uint64 timeout)
 {
     int retval;
     DWORD dwMilliseconds;
@@ -85,11 +85,12 @@ SDL_SemWaitTimeout(SDL_sem * sem, Uint32 timeout)
         return SDL_SetError("Passed a NULL sem");
     }
 
-    if (timeout == SDL_MUTEX_MAXWAIT) {
+    if (timeoutNS < 0) {
         dwMilliseconds = INFINITE;
     } else {
-        dwMilliseconds = (DWORD) timeout;
+        dwMilliseconds = (DWORD)SDL_NS_TO_MS(timeoutNS);
     }
+
     switch (WaitForSingleObjectEx(sem->id, dwMilliseconds, FALSE)) {
     case WAIT_OBJECT_0:
         InterlockedDecrement(&sem->count);
@@ -103,18 +104,6 @@ SDL_SemWaitTimeout(SDL_sem * sem, Uint32 timeout)
         break;
     }
     return retval;
-}
-
-int
-SDL_SemTryWait(SDL_sem * sem)
-{
-    return SDL_SemWaitTimeout(sem, 0);
-}
-
-int
-SDL_SemWait(SDL_sem * sem)
-{
-    return SDL_SemWaitTimeout(sem, SDL_MUTEX_MAXWAIT);
 }
 
 /* Returns the current count of the semaphore */

@@ -115,7 +115,7 @@ Thread B:
  */
 extern "C"
 int
-SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
+SDL_CondWaitTimeoutNS(SDL_cond *cond, SDL_mutex *mutex, Sint64 timeoutNS)
 {
     if (!cond) {
         SDL_SetError("Passed a NULL condition variable");
@@ -129,7 +129,7 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
 
     try {
         std::unique_lock<std::recursive_mutex> cpp_lock(mutex->cpp_mutex, std::adopt_lock_t());
-        if (ms == SDL_MUTEX_MAXWAIT) {
+        if (timeoutNS < 0) {
             cond->cpp_cond.wait(
                 cpp_lock
                 );
@@ -138,8 +138,7 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
         } else {
             auto wait_result = cond->cpp_cond.wait_for(
                 cpp_lock,
-                std::chrono::duration<Uint32, std::milli>(ms)
-                );
+                std::chrono::duration<Sint64, std::nano>(timeoutNS));
             cpp_lock.release();
             if (wait_result == std::cv_status::timeout) {
                 return SDL_MUTEX_TIMEDOUT;
@@ -148,17 +147,9 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
             }
         }
     } catch (std::system_error & ex) {
-        SDL_SetError("unable to wait on a C++ condition variable: code=%d; %s", ex.code(), ex.what());
+        SDL_SetError("Unable to wait on a C++ condition variable: code=%d; %s", ex.code(), ex.what());
         return -1;
     }
-}
-
-/* Wait on the condition variable forever */
-extern "C"
-int
-SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex)
-{
-    return SDL_CondWaitTimeout(cond, mutex, SDL_MUTEX_MAXWAIT);
 }
 
 /* vi: set ts=4 sw=4 expandtab: */

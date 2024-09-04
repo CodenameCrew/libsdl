@@ -36,7 +36,7 @@ struct SDL_Cursor
 typedef struct
 {
     int last_x, last_y;
-    Uint32 last_timestamp;
+    Uint64 last_timestamp;
     Uint8 click_count;
 } SDL_MouseClickState;
 

@@ -102,7 +102,7 @@ typedef struct {
     SDL_bool rumble_supported;
     int player_index;
     Uint8 volume;
-    Uint32 last_volume_check;
+    Uint64 last_volume_check;
     PS4StatePacket_t last_state;
 } SDL_DriverPS4_Context;
 

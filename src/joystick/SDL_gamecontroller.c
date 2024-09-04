@@ -118,7 +118,7 @@ struct _SDL_GameController
     SDL_ExtendedGameControllerBind *bindings;
     SDL_ExtendedGameControllerBind **last_match_axis;
     Uint8 *last_hat_mask;
-    Uint32 guide_button_down;
+    Uint64 guide_button_down;
 
     struct _SDL_GameController *next; /* pointer to next game controller we have allocated */
 };
@@ -2082,7 +2082,7 @@ SDL_PrivateGameControllerButton(SDL_GameController * gamecontroller, SDL_GameCon
 #endif /* !SDL_EVENTS_DISABLED */
 
     if (button == SDL_CONTROLLER_BUTTON_GUIDE) {
-        Uint32 now = SDL_GetTicks();
+        Uint64 now = SDL_GetTicks();
         if (state == SDL_PRESSED) {
             gamecontroller->guide_button_down = now;
 
@@ -2091,7 +2091,7 @@ SDL_PrivateGameControllerButton(SDL_GameController * gamecontroller, SDL_GameCon
                 return (0);
             }
         } else {
-            if (!SDL_TICKS_PASSED(now, gamecontroller->guide_button_down+SDL_MINIMUM_GUIDE_BUTTON_DELAY_MS) && !gamecontroller->joystick->force_recentering) {
+            if ((now < gamecontroller->guide_button_down+SDL_MINIMUM_GUIDE_BUTTON_DELAY_MS) && !gamecontroller->joystick->force_recentering) {
                 gamecontroller->joystick->delayed_guide_button = SDL_TRUE;
                 return (0);
             }

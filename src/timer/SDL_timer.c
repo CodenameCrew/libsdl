@@ -33,8 +33,8 @@ typedef struct _SDL_Timer
     int timerID;
     SDL_TimerCallback callback;
     void *param;
-    Uint32 interval;
-    Uint32 scheduled;
+    Uint64 interval;
+    Uint64 scheduled;
     SDL_atomic_t canceled;
     struct _SDL_Timer *next;
 } SDL_Timer;
@@ -83,7 +83,7 @@ SDL_AddTimerInternal(SDL_TimerData *data, SDL_Timer *timer)
 
     prev = NULL;
     for (curr = data->timers; curr; prev = curr, curr = curr->next) {
-        if ((Sint32)(timer->scheduled-curr->scheduled) < 0) {
+        if (curr->scheduled > timer->scheduled) {
             break;
         }
     }
@@ -105,7 +105,7 @@ SDL_TimerThread(void *_data)
     SDL_Timer *current;
     SDL_Timer *freelist_head = NULL;
     SDL_Timer *freelist_tail = NULL;
-    Uint32 tick, now, interval, delay;
+    Uint64 tick, now, interval, delay;
 
     /* Threaded timer loop:
      *  1. Queue timers added by other threads
@@ -145,13 +145,13 @@ SDL_TimerThread(void *_data)
         /* Initial delay if there are no timers */
         delay = SDL_MUTEX_MAXWAIT;
 
-        tick = SDL_GetTicks();
+        tick = SDL_GetTicksNS();
 
         /* Process all the pending timers for this tick */
         while (data->timers) {
             current = data->timers;
 
-            if ((Sint32)(tick-current->scheduled) < 0) {
+            if (tick < current->scheduled) {
                 /* Scheduled for the future, wait a bit */
                 delay = (current->scheduled - tick);
                 break;
@@ -163,7 +163,8 @@ SDL_TimerThread(void *_data)
             if (SDL_AtomicGet(&current->canceled)) {
                 interval = 0;
             } else {
-                interval = current->callback(current->interval, current->param);
+                /* FIXME: We could potentially support sub-millisecond timers now */
+                interval = SDL_MS_TO_NS(current->callback((Uint32)SDL_NS_TO_MS(current->interval), current->param));
             }
 
             if (interval > 0) {
@@ -185,7 +186,7 @@ SDL_TimerThread(void *_data)
         }
 
         /* Adjust the delay based on processing time */
-        now = SDL_GetTicks();
+        now = SDL_GetTicksNS();
         interval = (now - tick);
         if (interval > delay) {
             delay = 0;
@@ -198,7 +199,7 @@ SDL_TimerThread(void *_data)
            That's okay, it just means we run through the loop a few
            extra times.
          */
-        SDL_SemWaitTimeout(data->sem, delay);
+        SDL_SemWaitTimeoutNS(data->sem, delay);
     }
     return 0;
 }
@@ -275,8 +276,7 @@ SDL_TimerQuit(void)
     }
 }
 
-SDL_TimerID
-SDL_AddTimer(Uint32 interval, SDL_TimerCallback callback, void *param)
+SDL_TimerID SDL_AddTimer(Uint32 interval, SDL_TimerCallback callback, void *param)
 {
     SDL_TimerData *data = &SDL_timer_data;
     SDL_Timer *timer;
@@ -308,8 +308,8 @@ SDL_AddTimer(Uint32 interval, SDL_TimerCallback callback, void *param)
     timer->timerID = SDL_AtomicIncRef(&data->nextID);
     timer->callback = callback;
     timer->param = param;
-    timer->interval = interval;
-    timer->scheduled = SDL_GetTicks() + interval;
+    timer->interval = SDL_MS_TO_NS(interval);
+    timer->scheduled = SDL_GetTicksNS() + timer->interval;
     SDL_AtomicSet(&timer->canceled, 0);
 
     entry = (SDL_TimerMap *)SDL_malloc(sizeof(*entry));

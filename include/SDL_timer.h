@@ -37,12 +37,24 @@
 extern "C" {
 #endif
 
+#define SDL_MS_PER_SECOND   1000
+#define SDL_US_PER_SECOND   1000000
+#define SDL_NS_PER_SECOND   1000000000LLU
+#define SDL_NS_PER_MS       1000000
+#define SDL_NS_PER_US       1000
+#define SDL_MS_TO_NS(MS)    (((Uint64)(MS)) * SDL_NS_PER_MS)
+#define SDL_NS_TO_MS(NS)    ((NS) / SDL_NS_PER_MS)
+#define SDL_US_TO_NS(US)    (((Uint64)(US)) * SDL_NS_PER_US)
+#define SDL_NS_TO_US(NS)    ((NS) / SDL_NS_PER_US)
+
 /**
  * \brief Get the number of milliseconds since the SDL library initialization.
  *
  * \note This value wraps if the program runs for more than ~49 days.
  */
-extern DECLSPEC Uint32 SDLCALL SDL_GetTicks(void);
+extern DECLSPEC Uint64 SDLCALL SDL_GetTicks(void);
+
+extern DECLSPEC Uint64 SDLCALL SDL_GetTicksNS(void);
 
 /**
  * \brief Compare SDL ticks values, and return true if A has passed B
@@ -69,6 +81,8 @@ extern DECLSPEC Uint64 SDLCALL SDL_GetPerformanceFrequency(void);
  * \brief Wait a specified number of milliseconds before returning.
  */
 extern DECLSPEC void SDLCALL SDL_Delay(Uint32 ms);
+
+extern DECLSPEC void SDLCALL SDL_DelayNS(Uint64 ns);
 
 /**
  *  Function prototype for the timer callback function.

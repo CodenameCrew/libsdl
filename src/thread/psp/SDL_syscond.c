@@ -158,8 +158,7 @@ Thread B:
     SDL_CondSignal(cond);
     SDL_UnlockMutex(lock);
  */
-int
-SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
+int SDL_CondWaitTimeoutNS(SDL_cond *cond, SDL_mutex *mutex, Sint64 timeoutNS)
 {
     int retval;
 
@@ -179,11 +178,7 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
     SDL_UnlockMutex(mutex);
 
     /* Wait for a signal */
-    if (ms == SDL_MUTEX_MAXWAIT) {
-        retval = SDL_SemWait(cond->wait_sem);
-    } else {
-        retval = SDL_SemWaitTimeout(cond->wait_sem, ms);
-    }
+    retval = SDL_SemWaitTimeout(cond->wait_sem, timeoutNS);
 
     /* Let the signaler know we have completed the wait, otherwise
        the signaler can race ahead and get the condition semaphore
@@ -210,13 +205,6 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
     SDL_LockMutex(mutex);
 
     return retval;
-}
-
-/* Wait on the condition variable forever */
-int
-SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex)
-{
-    return SDL_CondWaitTimeout(cond, mutex, SDL_MUTEX_MAXWAIT);
 }
 
 #endif /* SDL_THREAD_PSP */

@@ -749,3 +749,8 @@
 #define SDL_GetAndroidSDKVersion SDL_GetAndroidSDKVersion_REAL
 #define SDL_isupper SDL_isupper_REAL
 #define SDL_islower SDL_islower_REAL
+#define SDL_WaitEventTimeoutNS SDL_WaitEventTimeoutNS_REAL
+#define SDL_SemWaitTimeoutNS SDL_SemWaitTimeoutNS_REAL
+#define SDL_CondWaitTimeoutNS SDL_CondWaitTimeoutNS_REAL
+#define SDL_GetTicksNS SDL_GetTicksNS_REAL
+#define SDL_DelayNS SDL_DelayNS_REAL
