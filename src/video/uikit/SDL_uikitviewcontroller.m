@@ -221,13 +221,8 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
     return hidden;
 }
 
-- (BOOL)prefersHomeIndicatorAutoHidden
-{
-    BOOL hidden = NO;
-    if (self.homeIndicatorHidden == 1) {
-        hidden = YES;
-    }
-    return hidden;
+- (BOOL)prefersHomeIndicatorAutoHidden {
+    return YES;
 }
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
