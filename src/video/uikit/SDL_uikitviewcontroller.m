@@ -227,13 +227,7 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-    if (self.homeIndicatorHidden >= 0) {
-        if (self.homeIndicatorHidden == 2) {
-            return UIRectEdgeAll;
-        } else {
-            return UIRectEdgeNone;
-        }
-    }
+    return UIRectEdgeAll;
 
     /* By default, fullscreen and borderless windows get all screen gestures */
     if ((window->flags & (SDL_WINDOW_FULLSCREEN|SDL_WINDOW_BORDERLESS)) != 0) {
